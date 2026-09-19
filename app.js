@@ -875,6 +875,9 @@ getRedirectResult(auth).catch(() => {
 document.getElementById("signOutBtn").addEventListener("click", async () => {
   await signOut(auth);
 });
+document.getElementById("mobileSignOutBtn").addEventListener("click", async () => {
+  if (confirm("サインアウトしますか?")) await signOut(auth);
+});
 
 // 読み込み中のまま固まった場合の保険: 一定時間で強制的にログイン画面へ
 const authStuckTimer = setTimeout(() => {
