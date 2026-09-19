@@ -1,0 +1,1214 @@
+<!doctype html>
+<html lang="ja" class="no-scrollbar">
+<head>
+<meta charset="utf-8">
+<title>スケジュール</title>
+<meta name="description" content="日々の予定と、誰と何をしたかを時系列でまとめる、あなた専用のスケジュールアプリ">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
+<style>
+  :root {
+    --paper: #ffffff;
+    --paper-raised: #ffffff;
+    --ink: #2b2c34;
+    --ink-soft: #6b6d78;
+    --ink-faint: #9a9ba3;
+    --rule: #dcdad0;
+    --rule-soft: #e8e6dc;
+    --seal: #b6402a;
+    --seal-soft: #e9d3ca;
+    --seal-wash: #f4e4de;
+    --indigo: #3c5a74;
+    --indigo-soft: #d6e0e5;
+    --indigo-wash: #eaf0f2;
+    --moss: #3f7a53;
+    --moss-wash: #e6f0e8;
+    --plum: #7a4a7e;
+    --plum-wash: #eee5ee;
+    --amber: #a8791f;
+    --amber-wash: #f3ead2;
+    --teal: #2f7a80;
+    --teal-wash: #e4f1f1;
+    --sun-vivid: #e0301e;
+    --sat-vivid: #1d5fd6;
+    --nav-active-bg: #e8b876;
+    --nav-hover-bg: #faf0df;
+    --focus: #3c5a74;
+    --bg-outer: #f4f3ee;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #1d1d22;
+      --paper-raised: #26262c;
+      --ink: #eae8e1;
+      --ink-soft: #a5a6ad;
+      --ink-faint: #7b7c84;
+      --rule: #3a3a42;
+      --rule-soft: #313138;
+      --seal: #d9694e;
+      --seal-soft: #4a2c26;
+      --seal-wash: #33231f;
+      --indigo: #8fb2c9;
+      --indigo-soft: #2a3b45;
+      --indigo-wash: #212f37;
+      --moss: #7fb894;
+      --moss-wash: #1f2c23;
+      --plum: #c99ecb;
+      --plum-wash: #2b2130;
+      --amber: #d9ab52;
+      --amber-wash: #2e2614;
+      --teal: #7fc2c4;
+      --teal-wash: #1b2c2d;
+      --sun-vivid: #ff5c48;
+      --sat-vivid: #5b9dff;
+      --nav-active-bg: #6b4a1e;
+      --nav-hover-bg: #2e2614;
+      --focus: #8fb2c9;
+      --bg-outer: #17171a;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { height: 100%; }
+  html.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+  html.no-scrollbar::-webkit-scrollbar { display: none; width: 0; height: 0; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    font-feature-settings: "palt";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--seal-wash); }
+
+  [hidden] { display: none !important; }
+
+  /* ---------- sign-in gate ---------- */
+  .auth-gate {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-outer);
+    padding: 20px;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 360px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 16px;
+    padding: 36px 30px;
+    text-align: center;
+    box-shadow: 0 18px 44px rgba(20, 18, 14, 0.10);
+  }
+  .auth-card h1 { font-size: 22px; font-weight: 900; margin: 0 0 10px; }
+  .auth-card p { font-size: 13.5px; color: var(--ink-soft); line-height: 1.7; margin: 0 0 26px; }
+  .google-btn {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 11px 16px;
+    cursor: pointer;
+  }
+  .google-btn:hover { border-color: var(--ink-faint); }
+  .google-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .auth-error {
+    margin: 16px 0 0;
+    font-size: 12.5px;
+    color: var(--seal);
+  }
+  .auth-warning {
+    margin: 0 0 18px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: var(--seal-wash);
+    color: var(--seal);
+    font-size: 12px;
+    line-height: 1.6;
+    text-align: left;
+  }
+  .auth-loading {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-outer);
+    color: var(--ink-faint);
+    font-size: 13px;
+  }
+
+  .app {
+    min-height: 100vh;
+  }
+
+  /* ---------- sidebar ---------- */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 232px;
+    overflow-y: auto;
+    border-right: 1px solid var(--rule);
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .brand .name {
+    font-weight: 900;
+    font-size: 19px;
+    letter-spacing: 0.01em;
+  }
+
+  nav { display: flex; flex-direction: column; gap: 2px; }
+  .nav-label {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    margin: 4px 10px 8px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    font-size: 14.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border: none;
+    background: none;
+    text-align: left;
+    font-family: inherit;
+    width: 100%;
+  }
+  .nav-item svg { flex: none; opacity: 0.75; }
+  .nav-item:hover { background: var(--nav-hover-bg); color: var(--ink); }
+  .nav-item:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .nav-item.active {
+    background: var(--nav-active-bg);
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .nav-item.active svg { opacity: 1; }
+
+  .sidebar-people {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-top: -6px;
+  }
+  .person-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px;
+    border-radius: 7px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border: none;
+    background: none;
+    text-align: left;
+    font-family: inherit;
+    width: 100%;
+  }
+  .person-chip:hover { background: var(--rule-soft); color: var(--ink); }
+  .person-chip.active { background: var(--c-wash, var(--seal-wash)); color: var(--c-fg, var(--seal)); font-weight: 700; }
+  .avatar {
+    width: 20px; height: 20px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 10px; font-weight: 700; flex: none;
+    background: var(--c-wash, var(--indigo-wash)); color: var(--c-fg, var(--indigo));
+    overflow: hidden;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .person-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .account-row {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .account-row .avatar { width: 30px; height: 30px; font-size: 12px; }
+  .account-info { min-width: 0; }
+  .account-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .link-btn {
+    font-family: inherit;
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .link-btn:hover { color: var(--ink); }
+
+  .sidebar-foot {
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    line-height: 1.6;
+  }
+
+  /* ---------- main ---------- */
+  main { margin-left: 232px; padding: 20px 44px 60px; max-width: 1240px; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .view-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 14px;
+    gap: 20px;
+  }
+  .view-head h1 {
+    font-weight: 900;
+    font-size: 25px;
+    margin: 0 0 6px;
+    text-wrap: balance;
+  }
+  .view-head .sub { font-size: 13.5px; color: var(--ink-soft); margin: 0; }
+  .view-head .btn-primary { margin-left: auto; }
+
+  .btn {
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 10px 18px;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .btn-primary { background: var(--seal); color: #fdfcf9; }
+  .btn-primary:hover { filter: brightness(1.06); }
+  .btn-primary:disabled { opacity: .6; cursor: default; }
+
+  /* ---- calendar ---- */
+  .cal-toolbar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .cal-nav {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .cal-arrow {
+    width: 36px; height: 36px;
+    border: 1px solid var(--rule);
+    background: var(--paper-raised);
+    border-radius: 8px;
+    display: grid; place-items: center;
+    cursor: pointer;
+    color: var(--ink-soft);
+  }
+  .cal-arrow:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .cal-arrow:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .cal-arrow svg { width: 18px; height: 18px; }
+  .cal-month {
+    font-size: 21px;
+    font-weight: 900;
+    min-width: 148px;
+    font-variant-numeric: tabular-nums;
+  }
+  .month-popover-anchor { position: relative; }
+  .month-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 40;
+    width: 224px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 14px 34px rgba(20, 18, 14, 0.16);
+  }
+  .month-popover-year {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .month-popover-year .cal-arrow { width: 28px; height: 28px; }
+  .mp-year-label {
+    font-family: inherit;
+    font-weight: 900;
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    background: none;
+    border: none;
+    border-radius: 6px;
+    padding: 2px 6px;
+    cursor: pointer;
+  }
+  .mp-year-label:hover { background: var(--rule-soft); }
+  .mp-year-label:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .month-popover-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .month-popover-grid button {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 0;
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .month-popover-grid button:hover { background: var(--rule-soft); }
+  .month-popover-grid button:disabled { opacity: .35; cursor: default; }
+  .month-popover-grid button:disabled:hover { background: var(--paper); }
+  .month-popover-grid button.current {
+    background: var(--nav-active-bg);
+    border-color: transparent;
+    font-weight: 900;
+  }
+  .cal-today-btn {
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  .cal-today-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .cal-toolbar .btn-primary { margin-left: auto; }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border: 2px solid var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .cal-weekday {
+    background: var(--paper-raised);
+    padding: 9px 10px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--ink-faint);
+    text-align: left;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    letter-spacing: 0.03em;
+  }
+  .cal-weekday.sun { color: var(--sun-vivid); }
+  .cal-weekday.sat { color: var(--sat-vivid); }
+
+  .cal-cell {
+    background: var(--paper-raised);
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    min-height: 100px;
+    min-width: 0;
+    padding: 5px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
+  }
+  .cal-cell:hover { background: var(--rule-soft); }
+  .cal-cell:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+  .cal-cell.out { color: var(--ink-faint); }
+  .cal-cell.out .cal-date { opacity: 0.4; }
+  .cal-cell.selected { background: var(--indigo-wash); }
+
+  .cal-date {
+    width: 20px; height: 20px;
+    display: grid; place-items: center;
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    border-radius: 50%;
+    flex: none;
+  }
+  .cal-date.sun { color: var(--sun-vivid); }
+  .cal-date.sat { color: var(--sat-vivid); }
+  .cal-cell.today .cal-date {
+    background: var(--seal);
+    color: var(--paper-raised);
+  }
+
+  .cal-chips { display: flex; flex-direction: column; gap: 2px; }
+  .cal-chip {
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--c-wash, var(--indigo-wash));
+    color: var(--c-fg, var(--indigo));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cal-more { font-size: 10px; color: var(--ink-faint); font-weight: 700; padding-left: 6px; }
+
+  /* ---- day detail / event cards ---- */
+  .day-detail { margin-top: 30px; }
+  .day-detail-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .day-detail-head .d { font-size: 16px; font-weight: 900; }
+  .day-detail-head .pill-today {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--seal);
+    border: 1px solid var(--seal);
+    border-radius: 999px;
+    padding: 1px 8px;
+  }
+
+  .event-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 3px 1fr;
+    gap: 16px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(30, 25, 15, 0.04);
+  }
+  .event-card .bar { background: var(--c-fg, var(--indigo)); }
+  .event-body { padding: 13px 64px 14px 0; display: flex; flex-direction: column; gap: 6px; }
+  .event-actions {
+    position: absolute;
+    top: 6px; right: 6px;
+    display: flex;
+    gap: 1px;
+  }
+  .event-actions button {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: none;
+    background: none;
+    color: var(--ink-faint);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+  }
+  .event-actions button:hover { background: var(--rule-soft); }
+  .event-actions .event-edit:hover { color: var(--indigo); }
+  .event-actions .event-delete:hover { color: var(--seal); }
+  .event-actions button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .event-top { display: flex; align-items: center; gap: 10px; }
+  .event-time {
+    font-size: 12px;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+    flex: none;
+    font-weight: 700;
+  }
+  .event-title { font-size: 20px; font-weight: 700; }
+  .event-note { font-size: 15px; color: var(--ink); line-height: 1.6; }
+  .event-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--c-fg, var(--seal));
+    background: var(--c-wash, var(--seal-wash));
+    border: none;
+    border-radius: 999px;
+    padding: 3px 10px 3px 5px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .tag:hover { filter: brightness(0.96); }
+  .tag:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .tag .avatar { width: 16px; height: 16px; font-size: 8.5px; background: var(--paper-raised); color: var(--c-fg, var(--seal)); }
+
+  /* ---- person timeline ---- */
+  .person-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .person-head .avatar-xl {
+    width: 50px; height: 50px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 18px; font-weight: 900;
+    background: var(--c-wash, var(--seal-wash)); color: var(--c-fg, var(--seal));
+    flex: none;
+  }
+  .person-head h1 { margin: 0; font-size: 19px; }
+  .person-name-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .icon-btn {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: none;
+    background: none;
+    color: var(--ink-faint);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+  .icon-btn:hover { background: var(--rule-soft); color: var(--ink); }
+  .icon-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .icon-btn.pinned { color: var(--amber); }
+  .icon-btn.pinned svg { fill: var(--amber); }
+  .person-meta { font-size: 13px; color: var(--ink-soft); }
+  .person-meta b { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 700; }
+
+  .timeline { border-top: 1px solid var(--rule-soft); }
+  .t-entry {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 11px 4px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .t-entry:hover { background: var(--rule-soft); }
+  .t-date {
+    flex: none;
+    width: 78px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .t-title { flex: none; font-size: 13.5px; font-weight: 700; }
+  .t-note {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .t-note::before { content: "・"; color: var(--ink-faint); }
+
+  .empty-note {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    text-align: center;
+    padding: 18px 0 4px;
+  }
+
+  .btn-ghost {
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    background: none;
+    border: 1px dashed var(--rule);
+    border-radius: 999px;
+    padding: 7px 16px;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+  .btn-ghost:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .btn-ghost:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+
+  /* ---------- modal ---------- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 18, 14, 0.36);
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 50;
+  }
+  .modal-overlay:not([hidden]) { display: flex; }
+  .modal {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    max-height: 88vh;
+    overflow-y: auto;
+    background: var(--paper-raised);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 18px 44px rgba(20, 18, 14, 0.22);
+  }
+  .modal.modal-sm { max-width: 320px; }
+  .modal.modal-md { max-width: 920px; min-height: 620px; }
+  .modal-close {
+    position: absolute;
+    top: 14px; right: 14px;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: none;
+    color: var(--ink-faint);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+  }
+  .modal-close:hover { background: var(--rule-soft); color: var(--ink); }
+  .modal-close:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .modal h2 { margin: 0 0 18px; font-size: 17px; font-weight: 900; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .person-note-field { margin: 4px 0 26px; }
+  .person-note-field textarea { min-height: 118px; }
+  .field label { font-size: 12px; font-weight: 700; color: var(--ink-soft); }
+  .field input[type="text"], .field input[type="date"], .field textarea {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 9px 11px;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .field textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
+  .field input:focus, .field textarea:focus {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+  }
+  .people-checks { display: flex; flex-wrap: wrap; gap: 6px; }
+  .check-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 5px 12px 5px 6px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .check-chip input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .check-chip:has(input:checked) {
+    background: var(--seal-wash);
+    border-color: var(--seal);
+    color: var(--seal);
+    font-weight: 700;
+  }
+  .check-chip:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .add-person-row { display: flex; gap: 6px; margin-top: 10px; }
+  .color-swatches-sm { gap: 6px; margin-top: 8px; }
+  .color-swatches-sm .color-swatch { width: 18px; height: 18px; }
+  .color-swatches-sm .color-swatch svg { width: 9px; height: 9px; }
+  .add-person-row input {
+    flex: 1;
+    min-width: 0;
+    font-family: inherit;
+    font-size: 13px;
+    padding: 7px 10px;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .btn-small {
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 7px 13px;
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+    background: var(--paper-raised);
+    color: var(--ink-soft);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-small:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+  .btn-text {
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    background: none;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .btn-text:hover { background: var(--rule-soft); color: var(--ink); }
+  .modal-error {
+    font-size: 12.5px;
+    color: var(--seal);
+    margin: -6px 0 12px;
+  }
+  .color-swatches { display: flex; gap: 10px; }
+  .color-swatch {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    padding: 0;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+  }
+  .color-swatch svg { opacity: 0; width: 12px; height: 12px; }
+  .color-swatch.selected {
+    border-color: var(--ink);
+  }
+  .color-swatch.selected svg { opacity: 1; }
+  .color-swatch:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .cal-cell, .event-card { transition: background-color .12s ease, border-color .12s ease; }
+  }
+
+  /* ---------- bottom tab bar (mobile only) ---------- */
+  .tabbar {
+    display: none;
+    flex-direction: row;
+    position: fixed;
+    left: 0; right: 0; top: 0;
+    z-index: 10;
+    background: var(--paper-raised);
+    border-bottom: 1px solid var(--rule);
+    padding: calc(6px + env(safe-area-inset-top)) 10px 6px;
+    gap: 4px;
+  }
+  .tabbar .nav-item {
+    flex: 1;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 4px;
+    font-size: 13px;
+    text-align: center;
+    border-radius: 10px;
+  }
+  .tabbar .nav-item svg { width: 15px; height: 15px; }
+
+  /* ---------- people directory (人別タイムライン) ---------- */
+  .people-layout { display: flex; gap: 26px; align-items: flex-start; }
+  .people-directory {
+    width: 240px;
+    flex: none;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .dir-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 14px;
+    border: none;
+    border-bottom: 1px solid var(--rule-soft);
+    background: var(--paper-raised);
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .dir-row:last-child { border-bottom: none; }
+  .dir-row:hover { background: var(--rule-soft); }
+  .dir-row.active { background: var(--c-wash, var(--seal-wash)); font-weight: 700; }
+  .dir-row .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dir-row .pin-mark { flex: none; color: var(--amber); }
+  #personDetail { flex: 1; min-width: 0; }
+  .choose-person-btn {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    border-style: solid;
+    border-radius: 8px;
+  }
+  .picker-add-btn {
+    width: 100%;
+    margin-bottom: 14px;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-style: solid;
+    border-radius: 8px;
+  }
+
+  /* ---------- mobile layout ---------- */
+  @media (max-width: 680px) {
+    body.modal-open { overflow: hidden; }
+
+    .sidebar { display: none; }
+    .tabbar { display: flex; }
+    .people-layout { flex-direction: column; align-items: stretch; }
+    #peopleDirectory { display: none; }
+    #addPersonBtnView { display: none; }
+    .choose-person-btn { display: inline-flex; }
+    #addRecordBtn { display: none; }
+
+    .field input[type="text"], .field input[type="date"], .field textarea,
+    .add-person-row input { font-size: 16px; }
+
+    #pickerList {
+      width: 100%;
+      border: none;
+      border-radius: 0;
+      overflow: visible;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #pickerList .dir-row,
+    #pickerList .dir-row:last-child {
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+    }
+    #personPickerOverlay .modal { max-width: none; }
+
+    main { margin-left: 0; padding: 68px 16px calc(18px + env(safe-area-inset-bottom)); max-width: none; }
+
+    .view-head { flex-wrap: wrap; }
+    .view-head h1 { font-size: 21px; }
+    .view-head .btn-primary { font-size: 12.5px; padding: 9px 14px; }
+
+    .cal-toolbar { gap: 10px; flex-wrap: wrap; }
+    .cal-month { font-size: 15px; min-width: 0; }
+    .cal-toolbar .btn-primary { margin-left: auto; font-size: 12.5px; padding: 9px 14px; }
+
+    .cal-cell { min-height: 56px; padding: 4px; gap: 3px; }
+    .cal-date { width: 19px; height: 19px; font-size: 11px; }
+    .cal-weekday { padding: 6px 4px; font-size: 10.5px; }
+
+    .cal-chips { flex-direction: row; flex-wrap: wrap; gap: 3px; }
+    .cal-chip {
+      width: 6px; height: 6px;
+      padding: 0;
+      border-radius: 50%;
+      overflow: hidden;
+      background: var(--c-fg, var(--indigo));
+    }
+    .cal-chip .chip-label { display: none; }
+    .cal-more { font-size: 0; width: 6px; height: 6px; padding: 0; border-radius: 50%; background: var(--ink-faint); }
+
+    .t-date { width: 58px; font-size: 11px; }
+    .t-title { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="authLoading" class="auth-loading">読み込み中…</div>
+<script>
+  // アプリ本体(app.js)の読み込みに失敗しても、画面が固まったままにならないための保険。
+  setTimeout(function () {
+    var loading = document.getElementById("authLoading");
+    var gate = document.getElementById("authGate");
+    if (loading && !loading.hidden) {
+      loading.hidden = true;
+      if (gate) gate.hidden = false;
+    }
+  }, 5000);
+</script>
+
+<div id="authGate" class="auth-gate" hidden>
+  <div class="auth-card">
+    <h1>スケジュール</h1>
+    <p>日々の予定と、誰と何をしたかを時系列でまとめる、あなた専用のアプリです。サインインすると、あなたのデータはあなた以外には見えません。</p>
+    <p class="auth-warning" id="inAppWarning" hidden>
+      LINEなどのアプリ内ブラウザではGoogleログインができません。右上の「…」などから「他のアプリで開く」「Safari/Chromeで開く」を選んで開き直してください。
+    </p>
+    <button type="button" class="google-btn" id="googleSignInBtn">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.03l2.99-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.47.89 11.43 0 9 0A9 9 0 0 0 .96 4.97l2.99 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
+      Googleでログイン
+    </button>
+    <p class="auth-error" id="authError" hidden></p>
+  </div>
+</div>
+
+<div class="app" id="appRoot" hidden>
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="name">スケジュール</span>
+    </div>
+
+    <nav aria-label="表示切り替え">
+      <span class="nav-label">記録</span>
+      <button class="nav-item active" data-view="schedule">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3.2" width="12" height="10.8" rx="1.6"/><path d="M2 6.4h12M5.2 1.6v3M10.8 1.6v3"/></svg>
+        予定
+      </button>
+      <button class="nav-item" data-view="people">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="5.4" r="2.6"/><path d="M3 14c.5-3 2.3-4.6 5-4.6s4.5 1.6 5 4.6"/></svg>
+        人別タイムライン
+      </button>
+    </nav>
+
+    <div>
+      <div class="nav-label">お気に入り</div>
+      <div class="sidebar-people" id="sidebarPeople"></div>
+    </div>
+
+    <div class="account-row">
+      <div class="avatar" id="acctAvatar">?</div>
+      <div class="account-info">
+        <div class="account-name" id="acctName">—</div>
+        <button type="button" class="link-btn" id="signOutBtn">サインアウト</button>
+      </div>
+    </div>
+    <p class="sidebar-foot">あなたのアカウントに保存され、他の人には見えません。</p>
+  </aside>
+
+  <nav class="tabbar" id="tabbarRoot" aria-label="表示切り替え(モバイル)">
+    <button class="nav-item active" data-view="schedule">
+      <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3.2" width="12" height="10.8" rx="1.6"/><path d="M2 6.4h12M5.2 1.6v3M10.8 1.6v3"/></svg>
+      予定
+    </button>
+    <button class="nav-item" data-view="people">
+      <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="5.4" r="2.6"/><path d="M3 14c.5-3 2.3-4.6 5-4.6s4.5 1.6 5 4.6"/></svg>
+      人別タイムライン
+    </button>
+  </nav>
+
+  <main>
+    <!-- ============ 予定ビュー(カレンダー) ============ -->
+    <section class="view active" id="view-schedule">
+      <div class="cal-toolbar">
+        <div class="cal-nav">
+          <button class="cal-arrow" id="prevMonth" aria-label="前の月">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3 5 8l5 5"/></svg>
+          </button>
+          <button class="cal-arrow" id="nextMonth" aria-label="次の月">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3l5 5-5 5"/></svg>
+          </button>
+        </div>
+        <span class="cal-month" id="calMonthLabel"></span>
+        <div class="month-popover-anchor" id="monthPopoverAnchor">
+          <button type="button" class="cal-arrow" id="openMonthPicker" aria-label="月を選ぶ" aria-haspopup="true" aria-expanded="false">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3.2" width="12" height="10.8" rx="1.6"/><path d="M2 6.4h12M5.2 1.6v3M10.8 1.6v3"/></svg>
+          </button>
+          <div class="month-popover" id="monthPopover" hidden>
+            <div class="month-popover-year">
+              <button type="button" class="cal-arrow" id="mpPrevYear" aria-label="前の年">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3 5 8l5 5"/></svg>
+              </button>
+              <button type="button" class="mp-year-label" id="mpYearLabel">2026年</button>
+              <button type="button" class="cal-arrow" id="mpNextYear" aria-label="次の年">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3l5 5-5 5"/></svg>
+              </button>
+            </div>
+            <div class="month-popover-grid" id="mpGrid"></div>
+          </div>
+        </div>
+        <button class="cal-today-btn" id="gotoToday">今日</button>
+        <button class="btn btn-primary" id="addEventBtn">＋ 予定を追加</button>
+      </div>
+
+      <div class="cal-grid" id="calGrid"></div>
+
+      <div class="day-detail">
+        <div class="day-detail-head" id="dayDetailHead">
+          <span class="d" id="dayDetailTitle">9月17日(木)</span>
+          <span class="pill-today" id="dayDetailToday">今日</span>
+        </div>
+        <div id="dayDetailList"></div>
+      </div>
+    </section>
+
+    <!-- ============ 人別タイムラインビュー ============ -->
+    <section class="view" id="view-people">
+      <div class="view-head">
+        <div>
+          <h1>人別タイムライン</h1>
+          <p class="sub">選んだ相手と「いつ・何をしたか」を時系列で振り返れます</p>
+        </div>
+        <button class="btn btn-primary" id="addRecordBtn">＋ 記録を追加</button>
+      </div>
+
+      <button type="button" class="btn-ghost" id="addPersonBtnView">＋ 人を追加</button>
+      <button type="button" class="btn-ghost choose-person-btn" id="choosePersonBtn">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="5.4" r="2.6"/><path d="M3 14c.5-3 2.3-4.6 5-4.6s4.5 1.6 5 4.6"/></svg>
+        人を選択
+      </button>
+
+      <div id="peopleEmpty" class="empty-note" hidden>
+        まだ人が登録されていません。「＋ 人を追加」から登録できます。
+      </div>
+
+      <div class="people-layout" id="peopleLayout">
+        <div class="people-directory" id="peopleDirectory"></div>
+
+        <div id="personDetail">
+          <div class="person-head">
+            <div class="avatar-xl" id="pHeadAvatar">佐</div>
+            <div>
+              <div class="person-name-row">
+                <h1 id="pHeadName">佐藤 美咲</h1>
+                <button type="button" class="icon-btn" id="pinPersonBtn" aria-label="お気に入りに追加/削除">
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 1.5l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.3l-3.8 2 .7-4.3-3.1-3 4.3-.6z"/></svg>
+                </button>
+                <button type="button" class="icon-btn" id="editPersonBtn" aria-label="名前を編集">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M11 2.5l2.5 2.5-8 8-3 .5.5-3 8-8z"/></svg>
+                </button>
+              </div>
+              <p class="person-meta">記録 <b id="pHeadCount">0</b>件 ・ 前回 <b id="pHeadLast">—</b></p>
+            </div>
+          </div>
+
+          <div class="field person-note-field">
+            <label for="pNote">メモ</label>
+            <textarea id="pNote" rows="5" placeholder="アレルギー、好み、誕生日など自由にメモできます"></textarea>
+          </div>
+
+          <div class="timeline" id="personTimeline"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ============ 予定・記録の追加モーダル ============ -->
+<div class="modal-overlay" id="modalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 id="modalTitle">予定を追加</h2>
+    <p class="modal-error" id="modalError" hidden></p>
+
+    <div class="field">
+      <label for="fDate">日付</label>
+      <input type="date" id="fDate">
+    </div>
+    <div class="field">
+      <label for="fTime">時間(任意)</label>
+      <input type="text" id="fTime" placeholder="例: 19:00 / 終日">
+    </div>
+    <div class="field">
+      <label for="fTitle">タイトル</label>
+      <input type="text" id="fTitle" placeholder="例: 美咲さんと夕食">
+    </div>
+    <div class="field">
+      <label>色</label>
+      <div class="color-swatches" id="fColorSwatches"></div>
+    </div>
+    <div class="field">
+      <label for="fNote">メモ(任意)</label>
+      <textarea id="fNote" rows="2"></textarea>
+    </div>
+    <div class="field">
+      <label>一緒にいた人(任意)</label>
+      <div class="people-checks" id="fPeopleChecks"></div>
+      <div class="add-person-row">
+        <input type="text" id="fNewPersonName" placeholder="新しい人の名前">
+        <button type="button" class="btn-small" id="fAddPersonBtn">追加</button>
+      </div>
+      <div class="color-swatches color-swatches-sm" id="fNewPersonColorSwatches"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-text" id="fCancel">キャンセル</button>
+      <button type="button" class="btn btn-primary" id="fSubmit">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 人の追加モーダル ============ -->
+<div class="modal-overlay" id="personModalOverlay" hidden>
+  <div class="modal modal-sm" role="dialog" aria-modal="true" aria-labelledby="personModalTitle">
+    <h2 id="personModalTitle">人を追加</h2>
+    <p class="modal-error" id="personModalError" hidden></p>
+    <div class="field">
+      <label for="pmName">名前</label>
+      <input type="text" id="pmName" placeholder="例: 山田 太郎">
+    </div>
+    <div class="field">
+      <label>色</label>
+      <div class="color-swatches" id="pmColorSwatches"></div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-text" id="pmCancel">キャンセル</button>
+      <button type="button" class="btn btn-primary" id="pmSubmit">追加</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 人を選択(モバイル専用)モーダル ============ -->
+<div class="modal-overlay" id="personPickerOverlay" hidden>
+  <div class="modal modal-sm" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+    <button type="button" class="modal-close" id="pickerClose" aria-label="閉じる">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg>
+    </button>
+    <h2 id="pickerTitle">人を選択</h2>
+    <button type="button" class="btn-ghost picker-add-btn" id="pickerAddPersonBtn">＋ 人を追加</button>
+    <div class="people-directory" id="pickerList"></div>
+  </div>
+</div>
+
+<!-- ============ 人のタイムライン(プレビュー)モーダル ============ -->
+<div class="modal-overlay" id="personTimelineOverlay" hidden>
+  <div class="modal modal-md" role="dialog" aria-modal="true" aria-labelledby="ptName">
+    <button type="button" class="modal-close" id="ptClose" aria-label="閉じる">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg>
+    </button>
+    <div class="person-head" style="margin-bottom:20px;">
+      <div class="avatar-xl" id="ptAvatar"></div>
+      <div>
+        <div class="person-name-row">
+          <h1 id="ptName"></h1>
+          <button type="button" class="icon-btn" id="ptPinBtn" aria-label="お気に入りに追加/削除">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 1.5l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.3l-3.8 2 .7-4.3-3.1-3 4.3-.6z"/></svg>
+          </button>
+        </div>
+        <p class="person-meta">記録 <b id="ptCount">0</b>件 ・ 前回 <b id="ptLast">—</b></p>
+      </div>
+    </div>
+    <div class="field person-note-field">
+      <label for="ptNote">メモ</label>
+      <textarea id="ptNote" rows="5" placeholder="アレルギー、好み、誕生日など自由にメモできます"></textarea>
+    </div>
+    <div class="timeline" id="ptTimeline"></div>
+  </div>
+</div>
+
+<script type="module" src="./app.js?v=20"></script>
+</body>
+</html>
