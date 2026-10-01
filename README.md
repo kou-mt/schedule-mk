@@ -33,15 +33,48 @@
 
 ## 5. ローカルで動作確認する
 
-このアプリはビルド不要ですが、`index.html` を直接ダブルクリックして開くとログイン機能が動きません。簡易サーバーを立てて確認します。
+自分のパソコン(`localhost`)で開いたときは、本番ではなく **Firebase エミュレーター**(手元だけで動く偽物のログインとデータベース)につながるようになっています。手元でどれだけいじっても、本番の予定データには一切触れません。
 
-Node.js がインストール済みなら、このフォルダで:
+### 必要なもの(最初の1回だけ)
+
+- Git for Windows(https://git-scm.com/ )… 一緒に入る「Git Bash」でコマンドを打ちます
+- Node.js(https://nodejs.org/ の LTS 版)
+- Java(JDK 11 以上。例: https://adoptium.net/ )… エミュレーターに必要
+- firebase-tools: `npm install -g firebase-tools`
+
+### 起動
+
+このフォルダで:
 
 ```bash
-npx serve .
+firebase emulators:start
 ```
 
-表示されたURL(例: `http://localhost:3000`)をブラウザで開いて動作確認してください。
+- アプリ: http://localhost:5000
+- エミュレーターの管理画面(偽データベースの中身が見られる): http://localhost:4000
+
+ログインボタンを押すと偽のGoogleログイン画面が出るので、「Add new account」で適当なアカウントを作ってログインしてください。止めるときは `Ctrl + C` です(データは消えます)。
+
+## 5.5. ブランチで安全にいじる流れ
+
+本番が更新されるのは `firebase deploy` を実行したときだけです。GitHub にプッシュしても本番は変わりません。
+
+```bash
+git switch master && git pull          # 最新の master にする
+git switch -c feature/やりたいこと      # 作業用ブランチを作る
+# …コードを編集して、firebase emulators:start で確認…
+git add . && git commit -m "変更内容"
+git push -u origin feature/やりたいこと  # GitHub に保存(本番には影響なし)
+```
+
+満足したら GitHub でプルリクエストを作って `master` にマージし、**`master` に戻ってから** デプロイします:
+
+```bash
+git switch master && git pull
+firebase deploy --only hosting,firestore:rules
+```
+
+⚠️ 作業用ブランチにいるまま `firebase deploy` すると、作業中の状態が本番に出てしまうので注意。
 
 ## 6. 公開する(スマホ・PC両方から使えるようにする)
 

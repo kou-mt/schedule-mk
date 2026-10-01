@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth,
+  connectAuthEmulator,
   GoogleAuthProvider,
   signInWithRedirect,
   getRedirectResult,
@@ -9,6 +10,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore,
+  connectFirestoreEmulator,
   collection,
   doc,
   getDoc,
@@ -23,6 +25,15 @@ import { firebaseConfig } from "./firebase-config.js";
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const firestore = getFirestore(firebaseApp);
+
+// 自分のパソコン(localhost)で開いたときは、本番ではなくエミュレーター
+// (`firebase emulators:start` で起動する偽物のログイン・データベース)につなぐ。
+// こうしておけば、手元でどれだけいじっても本番のデータには一切触れない。
+const isLocal = ["localhost", "127.0.0.1"].includes(location.hostname);
+if (isLocal) {
+  connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+  connectFirestoreEmulator(firestore, "127.0.0.1", 8080);
+}
 
 // -----------------------------------------------------------------
 // Firestore を、以前の db capability と同じ形の薄いラッパーで包む。
